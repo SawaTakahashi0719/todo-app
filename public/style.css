@@ -1,0 +1,139 @@
+/* ページ全体 */
+body {
+  margin: 0;
+  padding: 0;
+
+  background-color: white;
+  color: black;
+
+  font-family: sans-serif;
+
+  /* 中央寄せ */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* 画面いっぱいの高さ */
+  height: 100vh;
+}
+
+
+/* 全体の箱 */
+.container {
+  width: 400px;
+
+  padding: 20px;
+
+  border: 1px solid #ccc;
+  border-radius: 10px;
+
+  background-color: white;
+}
+
+
+/* タイトル */
+h1 {
+  text-align: center;
+
+  margin-bottom: 20px;
+}
+
+
+/* 入力エリア */
+.input-area {
+  display: flex;
+
+  gap: 10px;
+
+  margin-bottom: 20px;
+}
+
+
+/* 入力欄 */
+#todo-input {
+  flex: 1;
+
+  padding: 10px;
+
+  font-size: 16px;
+
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+
+/* 追加ボタン */
+#add-button {
+  padding: 10px 15px;
+
+  border: none;
+  border-radius: 5px;
+
+  background-color: black;
+  color: white;
+
+  cursor: pointer;
+}
+
+
+/* ボタンにマウスを乗せた時 */
+#add-button:hover {
+  opacity: 0.8;
+}
+
+
+/* Todo一覧 */
+#todo-list {
+  list-style: none;
+
+  padding: 0;
+  margin: 0;
+}
+
+
+/* Todo1件 */
+#todo-list li {
+  padding: 10px;
+
+  border-bottom: 1px solid #ccc;
+}
+
+
+/* Todo1件 */
+#todo-list li {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+
+/* Todoテキスト */
+#todo-list li span {
+  flex: 1;
+}
+
+
+/* 完了状態 */
+.completed span {
+
+  text-decoration: line-through;
+
+  opacity: 0.5;
+
+}
+
+
+/* 削除ボタン */
+#todo-list li button {
+  margin-left: auto;
+}
+
+
+
+
+
+
+
+
+
