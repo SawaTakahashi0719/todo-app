@@ -12,9 +12,7 @@ HTML/CSSは反映されるがJavaScriptが動作しない。
 ブラウザの開発者ツール（F12）を開き、Consoleを確認。
 #### 原因
 script.jsの先頭に以下の文字列が残っていた。
-````text
-```javascript
-````
+` ```javascript `
 ChatGPTの回答をコピーした際に混入したものだった。
 #### 解決方法
 不要な文字列を削除し、Ctrl + F5でブラウザを再読み込みした。
@@ -43,46 +41,22 @@ JavaScript自体は読み込まれていたが、loadTodos() 内の fetch が失
 ### 実施内容
 前日の通信エラーについて調査。
 ### 原因整理
-バックエンド（Hono）
-```text
-http://localhost:3000
-```
-で起動していた。
-一方、フロントエンドは
-```bash
-npx serve .
-```
-で起動していたため、別のポート番号が割り当てられていた。
+バックエンド（Hono）は`http://localhost:3000`で起動していた。
+一方、フロントエンドは`npx serve .`で起動していたため、別のポート番号が割り当てられていた。
 その結果、CORS設定に一致せず通信エラーが発生していた。
+
 ### 解決方法
-fetchの接続先を
-```text
-http://localhost:3000
-```
-へ統一。
-また、CORS設定を
+fetchの接続先を`http://localhost:3000`へ統一。
+また、CORS設定を下記へ変更。
 ```js
 cors({
   origin: "http://localhost"
 })
 ```
-へ変更。
-フロントエンドは
-```text
-http://localhost
-```
-からアクセスする構成へ変更した。
+フロントエンドは`http://localhost`からアクセスする構成へ変更した。
 ### 環境改善
-specialistの提案により、
-```text
-npx serve
-```
-を廃止。
-代わりに
-```text
-Caddy
-```
-を導入。
+specialistの提案により、`npx serve`を廃止。
+代わりに`Caddy`を導入。
 また、プロジェクト構成を整理した。
 変更前
 ```text
@@ -127,13 +101,13 @@ Todoテーブルの設計。
 * リポジトリ管理方法の理解
 
 ### 学んだこと
-* git init
-* git remote add origin
-* git add
-* git commit
-* git push
-* git clone
-* git pull
+* `git init`
+* `git remote add origin`
+* `git add`
+* `git commit`
+* `git push`
+* `git clone`
+* `git pull`
 の役割と違いを理解した。
 ### 次回予定
 Todoテーブルの設計。
@@ -148,27 +122,21 @@ Todoテーブルの設計。
 
 ### 発生した問題
 #### 現象
-* server.jsを修正してTodoデータの取得先をMariaDBへ変更したが、ブラウザ上の表示内容が更新されなかった。
+* `server.js`を修正してTodoデータの取得先をMariaDBへ変更したが、ブラウザ上の表示内容が更新されなかった。
 #### 調査内容
-* ```text
-http://localhost:3000/todos
-``` 
-にアクセスし、返却されるJSONを確認
-* MariaDBのtodosテーブルへ直接データを追加
+* `http://localhost:3000/todos`にアクセスし、返却されるJSONを確認
+* MariaDBの`todos`テーブルへ直接データを追加
 * ブラウザを再読み込みして挙動を確認
 #### 原因
-* おそらくHonoがrunningのままで変更が反映されなかった
+* `server.js`の変更後にHonoサーバーを再起動していなかったため、変更内容が反映されていなかった。
 #### 解決方法
 1.実行中のHonoサーバーを停止
-2.node server.js で再起動
+2.`node server.js` で再起動
 3.ブラウザを再読み込みして動作確認
 #### 学んだこと
 * server.jsを変更した場合はサーバーの再起動が必要
 * ブラウザ側の問題かサーバー側の問題かを切り分けるために、APIエンドポイント
-```text
-http://localhost:3000/todos
-```
-を直接確認すると原因調査がしやすい
+`http://localhost:3000/todos`を直接確認すると原因調査がしやすい
 #### 次回予定
 * GitHubへ公開
 * 公開後の動作確認
