@@ -142,3 +142,55 @@ Todoテーブルの設計。
 * 公開後の動作確認
 * READMEの機能部分の整理
 
+---
+
+## 2026/06/17
+### 実施内容
+* 検索機能の追加
+* 並び替え機能の追加（登録順・お気に入り・完了順）
+* テキスト編集機能の追加（インライン編集）
+* お気に入り（ピックアップ）機能の追加
+* ドラッグ＆ドロップによる並び替え機能の追加
+* 完了済み一括削除機能の追加
+* 完了チェックボックスの追加（完了はチェックボックスで管理するよう変更）
+
+### 変更内容
+
+#### server.js
+* CORSに `PATCH` メソッドを追加
+* `GET /todos`：`ORDER BY sort_order ASC` で登録順に返すよう変更
+* `POST /todos`：`sort_order` を自動採番して挿入するよう変更
+* `DELETE /todos/completed`：完了済みの一括削除エンドポイントを追加
+* `PUT /todos/reorder`：並び替え結果を一括更新するエンドポイントを追加
+* `PUT /todos/:id`：完了トグル時に `completed_at` も更新するよう変更
+* `PATCH /todos/:id`：テキスト編集用エンドポイントを追加
+* `PATCH /todos/:id/pickup`：お気に入りトグル用エンドポイントを追加
+* 不要なDB確認コードを削除
+
+#### index.html
+* 検索入力エリアを追加
+* 並び替えボタンエリア（登録順・お気に入り・完了順）を追加
+* 枠外アクションエリア（完了済一括削除ボタン）を追加
+
+#### script.js
+* `allTodos` / `searchQuery` / `sortMode` / `editingId` / `dragSrcId` の状態変数を追加
+* `applyFiltersAndSort()` でフィルタ・並び替え・描画を一元管理するよう設計変更
+* `renderTodos()` を大幅更新：完了チェックボックス・インライン編集UI・ドラッグ操作を追加
+* `editTodo()` / `togglePickup()` / `reorderTodos()` / `deleteCompleted()` を追加
+* 旧 `toggleTodo()`：削除＋追加の疑似実装から `PUT` による正規の完了トグルに変更
+
+#### style.css
+* 検索エリア・並び替えボタンのスタイルを追加
+* 完了チェックボックス・編集入力・アイコンボタン・テキストボタンのスタイルを追加
+* ドラッグ中（`.dragging`）・ドロップ先（`.drag-over`）のスタイルを追加
+* フッターアクションエリアのスタイルを追加
+* `body` のレイアウト調整（`flex-direction: column` / `min-height` / `gap`）
+
+### 設計で意識したこと
+* `PUT /todos/reorder` や `DELETE /todos/completed` は、`/todos/:id` より先にルート登録しないと `:id` にマッチしてしまう。Honoはルートを登録順に評価するため、特定パスを先に書く必要がある。
+* フロントの状態は `allTodos` に一元管理し、フィルタ・並び替えは毎回 `applyFiltersAndSort()` を呼んで再計算する設計にした。
+
+### 次回予定
+* `sort_order` カラムの追加（DBマイグレーション）確認
+* `pickup` / `completed_at` カラムの追加確認
+* GitHubへ公開・READMEの整備
