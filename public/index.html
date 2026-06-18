@@ -6,7 +6,7 @@
   <title>Todoリスト</title>
 
   <!-- CSSファイル読み込み -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 
 <body>
@@ -38,11 +38,10 @@
       <input type="text" id="search-input" placeholder="検索">
     </div>
 
-    <!-- 並び替えエリア -->
+    <!-- 追加位置切り替え -->
     <div class="sort-area">
-      <button class="sort-btn active" data-sort="order">登録順</button>
-      <button class="sort-btn" data-sort="pickup">お気に入り</button>
-      <button class="sort-btn" data-sort="completed">完了順</button>
+      <button id="add-bottom-btn" class="add-position-btn active">↓</button>
+      <button id="add-top-btn" class="add-position-btn">↑</button>
     </div>
 
     <!-- Todo一覧 -->
@@ -52,11 +51,11 @@
 
   <!-- 枠外アクション -->
   <div class="footer-actions">
-    <button id="delete-completed-btn">完了済一括削除</button>
+    <button id="delete-completed-btn">☑ 一括消去</button>
   </div>
 
   <!-- JavaScript読み込み -->
-  <script src="script.js"></script>
+  <script src="script.js?v=3"></script>
 
 </body>
 </html>

@@ -2,6 +2,7 @@
 
 import { Hono } from "hono"
 import { serve } from "@hono/node-server"
+import { serveStatic } from "@hono/node-server/serve-static"
 import { cors } from "hono/cors"
 import { db } from "./db/connection.js";
 
@@ -98,6 +99,8 @@ app.patch("/todos/:id/pickup", async (c) => {
   );
   return c.json({ message: "ピックアップを更新しました" });
 });
+
+app.use("/*", serveStatic({ root: "../public" }));
 
 //起動
 serve({

@@ -194,3 +194,59 @@ Todoテーブルの設計。
 * `sort_order` カラムの追加（DBマイグレーション）確認
 * `pickup` / `completed_at` カラムの追加確認
 * GitHubへ公開・READMEの整備
+
+---
+
+## 2026/06/18
+### 実施内容
+* お気に入り（ピックアップ）機能の廃止
+* ドラッグハンドル（☰）の追加：ハンドル部分のみドラッグ起点として限定
+* 追加位置切り替えボタンの追加：↓（下に追加）と↑（上に追加）の2ボタン構成
+* 並び替えボタン（登録順・お気に入り・完了順）の廃止
+* 「完了済一括削除」→「☑ 一括消去」に名称変更
+* 本バージョンをv1完成版とする
+
+### 変更内容
+
+#### index.html
+* 並び替えエリアを「↓ / ↑」追加位置切り替えボタン2つに変更
+* フッターボタンのラベルを「☑ 一括消去」に変更
+* `?v=3` クエリパラメータをCSS・JS読み込みに付与（ブラウザキャッシュ対策）
+
+#### script.js
+* `sortMode` / `sortBtns` を削除
+* `addPosition`（`"bottom"` / `"top"`）状態変数を追加
+* `addBottomBtn` / `addTopBtn` の各クリックで `addPosition` を切り替え、アクティブクラスをトグル
+* 昇順追加（`addPosition === "top"`）時は POST 後に再取得し、末尾の新規アイテムを先頭へ `reorderTodos()` で移動
+* `togglePickup()` を削除
+* `applyFiltersAndSort()` からピックアップ・完了順ソートロジックを削除（`sort_order` 昇順のみに統一）
+* ドラッグ実装を `li.draggable = true` + `dragFromHandle` フラグ方式に変更
+  * ハンドル（☰）の `mousedown` でフラグを立て、`li` の `dragstart` でフラグを確認
+  * フラグが立っていない場合は `e.preventDefault()` でドラッグをキャンセル
+  * `dragend` でフラグをリセット
+
+#### style.css
+* `.sort-btn` 関連スタイルを削除し `.add-position-btn` / `.add-position-btn.active` を追加
+* `#todo-list li span` → `#todo-list li > span` に変更（直接子セレクター）
+* `.completed span` → `.completed > span` に変更（同上）
+* `#todo-list li` から `cursor: grab` を削除
+* `.drag-handle` に `cursor: grab` と `user-select: none` を追加
+
+### 発生した問題と解決
+
+#### アクティブ状態が反映されない
+* **原因**：ブラウザが古い script.js / style.css をキャッシュしていたため、コード変更が反映されていなかった。
+* **解決**：CSS・JS の読み込みURLに `?v=3` クエリを付与してキャッシュを無効化。
+
+#### ドラッグハンドルが動かない（その1）
+* **原因**：`#todo-list li span { flex: 1; }` というCSSが、Todoテキストの `span` だけでなくドラッグハンドルの `span`（`.action-btns` 内）にも適用され、レイアウトが崩れていた。
+* **解決**：`#todo-list li > span`（直接子セレクター）に変更し、ネスト内の `span` に適用されないよう修正。
+
+#### ドラッグハンドルが動かない（その2）
+* **原因**：当初 `button[draggable=true]` → `span[draggable=true]` と試みたが、ブラウザによってはインタラクティブ要素や子要素の `draggable` 属性を正しく処理しないケースがある。
+* **解決**：`li.draggable = true` を維持しつつ、ハンドルの `mousedown` イベントで `dragFromHandle` フラグを立て、`li` の `dragstart` でフラグを確認してハンドル以外から始まるドラッグをキャンセルする方式に変更。HTML5 DnD における標準的なハンドル限定ドラッグの実装パターン。
+
+### 設計で意識したこと
+* ドラッグの「起点を限定する」には、ドラッグされる要素（li）はそのままにしてフラグで制御する方が、子要素を draggable にするより信頼性が高い。
+* CSSセレクターの範囲は常に意識する。`li span` は孫要素にも適用されるため、直接子のみを対象にしたい場合は `li > span` を使う。
+* ブラウザキャッシュは開発中に混乱の原因になりやすい。静的ファイルを更新したらクエリパラメータやバージョン番号でキャッシュバスティングを行う。

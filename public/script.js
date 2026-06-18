@@ -4,14 +4,16 @@ const addButton = document.getElementById("add-button");
 const todoInput = document.getElementById("todo-input");
 const todoList = document.getElementById("todo-list");
 const searchInput = document.getElementById("search-input");
-const sortBtns = document.querySelectorAll(".sort-btn");
+const addBottomBtn = document.getElementById("add-bottom-btn");
+const addTopBtn = document.getElementById("add-top-btn");
 const deleteCompletedBtn = document.getElementById("delete-completed-btn");
 
 let allTodos = [];
 let searchQuery = "";
-let sortMode = "order";
+let addPosition = "bottom"; // "bottom"=降順（末尾追加）, "top"=昇順（先頭追加）
 let editingId = null;
 let dragSrcId = null;
+let dragFromHandle = false;
 
 loadTodos();
 
@@ -26,13 +28,16 @@ searchInput.addEventListener("input", () => {
   applyFiltersAndSort();
 });
 
-sortBtns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    sortMode = btn.dataset.sort;
-    sortBtns.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    applyFiltersAndSort();
-  });
+addBottomBtn.addEventListener("click", () => {
+  addPosition = "bottom";
+  addBottomBtn.classList.add("active");
+  addTopBtn.classList.remove("active");
+});
+
+addTopBtn.addEventListener("click", () => {
+  addPosition = "top";
+  addTopBtn.classList.add("active");
+  addBottomBtn.classList.remove("active");
 });
 
 deleteCompletedBtn.addEventListener("click", deleteCompleted);
@@ -56,23 +61,7 @@ function applyFiltersAndSort() {
     todos = todos.filter(t => t.text.toLowerCase().includes(q));
   }
 
-  if (sortMode === "pickup") {
-    todos.sort((a, b) => b.pickup - a.pickup || a.sort_order - b.sort_order);
-  } else if (sortMode === "completed") {
-    todos.sort((a, b) => {
-      if (a.completed && b.completed) {
-        if (!a.completed_at && !b.completed_at) return a.sort_order - b.sort_order;
-        if (!a.completed_at) return 1;
-        if (!b.completed_at) return -1;
-        return new Date(b.completed_at) - new Date(a.completed_at);
-      }
-      if (a.completed) return -1;
-      if (b.completed) return 1;
-      return a.sort_order - b.sort_order;
-    });
-  } else {
-    todos.sort((a, b) => a.sort_order - b.sort_order);
-  }
+  todos.sort((a, b) => a.sort_order - b.sort_order);
 
   renderTodos(todos);
 }
@@ -91,7 +80,23 @@ function addTodo() {
     .then(res => res.json())
     .then(() => {
       todoInput.value = "";
-      loadTodos();
+      if (addPosition === "top") {
+        // 一覧を再取得してから新規アイテム（末尾）を先頭へ移動
+        fetch("http://localhost:3000/todos")
+          .then(res => res.json())
+          .then(data => {
+            allTodos = data;
+            const newTodo = allTodos[allTodos.length - 1];
+            const firstTodo = allTodos[0];
+            if (newTodo && firstTodo && newTodo.id !== firstTodo.id) {
+              reorderTodos(newTodo.id, firstTodo.id);
+            } else {
+              applyFiltersAndSort();
+            }
+          });
+      } else {
+        loadTodos();
+      }
     })
     .catch(err => console.error(err));
 }
@@ -132,13 +137,6 @@ function editTodo(id, text) {
     .catch(err => console.error(err));
 }
 
-function togglePickup(id) {
-  fetch(`http://localhost:3000/todos/${id}/pickup`, { method: "PATCH" })
-    .then(res => res.json())
-    .then(() => loadTodos())
-    .catch(err => console.error(err));
-}
-
 function reorderTodos(srcId, destId) {
   const srcIdx = allTodos.findIndex(t => t.id === srcId);
   const destIdx = allTodos.findIndex(t => t.id === destId);
@@ -167,35 +165,39 @@ function renderTodos(todos) {
     const li = document.createElement("li");
     if (todo.completed) li.classList.add("completed");
 
-    // ドラッグ設定（編集中は無効）
-    if (editingId !== todo.id) {
-      li.draggable = true;
-      li.addEventListener("dragstart", (e) => {
-        dragSrcId = todo.id;
-        e.dataTransfer.effectAllowed = "move";
-        setTimeout(() => li.classList.add("dragging"), 0);
-      });
-      li.addEventListener("dragover", (e) => {
+    // li をドラッグソース＆ドロップターゲットに設定
+    li.draggable = true;
+    li.addEventListener("dragstart", (e) => {
+      if (!dragFromHandle) {
         e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        li.classList.add("drag-over");
-      });
-      li.addEventListener("dragleave", () => {
-        li.classList.remove("drag-over");
-      });
-      li.addEventListener("drop", (e) => {
-        e.preventDefault();
-        li.classList.remove("drag-over");
-        if (dragSrcId !== null && dragSrcId !== todo.id) {
-          reorderTodos(dragSrcId, todo.id);
-        }
-      });
-      li.addEventListener("dragend", () => {
-        li.classList.remove("dragging");
-        todoList.querySelectorAll("li").forEach(l => l.classList.remove("drag-over"));
-        dragSrcId = null;
-      });
-    }
+        return;
+      }
+      dragSrcId = todo.id;
+      e.dataTransfer.effectAllowed = "move";
+      dragFromHandle = false;
+      setTimeout(() => li.classList.add("dragging"), 0);
+    });
+    li.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      li.classList.add("drag-over");
+    });
+    li.addEventListener("dragleave", () => {
+      li.classList.remove("drag-over");
+    });
+    li.addEventListener("drop", (e) => {
+      e.preventDefault();
+      li.classList.remove("drag-over");
+      if (dragSrcId !== null && dragSrcId !== todo.id) {
+        reorderTodos(dragSrcId, todo.id);
+      }
+    });
+    li.addEventListener("dragend", () => {
+      dragFromHandle = false;
+      li.classList.remove("dragging");
+      todoList.querySelectorAll("li").forEach(l => l.classList.remove("drag-over"));
+      dragSrcId = null;
+    });
 
     // 完了チェックボックス
     const completedCheckbox = document.createElement("input");
@@ -251,15 +253,16 @@ function renderTodos(todos) {
       deleteBtn.title = "削除";
       deleteBtn.addEventListener("click", () => deleteTodo(todo.id));
 
-      const favoriteBtn = document.createElement("button");
-      favoriteBtn.textContent = todo.pickup ? "★" : "☆";
-      favoriteBtn.className = `icon-btn favorite${todo.pickup ? " active" : ""}`;
-      favoriteBtn.title = "お気に入り";
-      favoriteBtn.addEventListener("click", () => togglePickup(todo.id));
+      // ドラッグハンドル（mousedown でフラグを立て、li の dragstart を有効化）
+      const dragHandle = document.createElement("span");
+      dragHandle.textContent = "☰";
+      dragHandle.className = "icon-btn drag-handle";
+      dragHandle.title = "ドラッグして並べ替え";
+      dragHandle.addEventListener("mousedown", () => { dragFromHandle = true; });
 
       actionBtns.appendChild(editBtn);
       actionBtns.appendChild(deleteBtn);
-      actionBtns.appendChild(favoriteBtn);
+      actionBtns.appendChild(dragHandle);
 
       li.appendChild(completedCheckbox);
       li.appendChild(span);

@@ -98,14 +98,14 @@ h1 {
 }
 
 
-/* 並び替えエリア */
+/* 追加位置切り替え */
 .sort-area {
   display: flex;
   gap: 6px;
   margin-bottom: 12px;
 }
 
-.sort-btn {
+.add-position-btn {
   padding: 4px 10px;
   font-size: 12px;
   border: 1px solid #ccc;
@@ -114,13 +114,13 @@ h1 {
   cursor: pointer;
 }
 
-.sort-btn.active {
+.add-position-btn.active {
   background: black;
   color: white;
   border-color: black;
 }
 
-.sort-btn:hover:not(.active) {
+.add-position-btn:hover:not(.active) {
   background: #f0f0f0;
 }
 
@@ -140,11 +140,6 @@ h1 {
   align-items: center;
   padding: 10px;
   border-bottom: 1px solid #ccc;
-  cursor: grab;
-}
-
-#todo-list li:active {
-  cursor: grabbing;
 }
 
 
@@ -160,13 +155,13 @@ h1 {
 
 
 /* Todoテキスト */
-#todo-list li span {
+#todo-list li > span {
   flex: 1;
 }
 
 
 /* 完了状態 */
-.completed span {
+.completed > span {
   text-decoration: line-through;
   opacity: 0.5;
 }
@@ -180,7 +175,7 @@ h1 {
   flex-shrink: 0;
 }
 
-/* アイコンボタン（編集・削除・お気に入り） */
+/* アイコンボタン（編集・削除・ドラッグハンドル） */
 .icon-btn {
   background: none;
   border: none;
@@ -197,8 +192,13 @@ h1 {
   color: #333;
 }
 
-.icon-btn.favorite.active {
-  color: #e6ac00;
+.drag-handle {
+  cursor: grab;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 /* テキストボタン（保存・キャンセル） */
